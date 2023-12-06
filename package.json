@@ -1,0 +1,16 @@
+{
+  "name": "vite-plugin-svg-sprite-components",
+  "type": "module",
+  "version": "0.0.0",
+  "description": "Create svg sprite sheets from imported svg files and get usable components for many popular frontend frameworks.",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "vite-plugin",
+    "svg",
+    "sprites"
+  ],
+  "author": "Ken Powers <ken@kenpowers.net> (https://knpw.rs)",
+  "license": "UNLICENSE"
+}

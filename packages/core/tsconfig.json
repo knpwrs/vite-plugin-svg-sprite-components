@@ -1,5 +1,13 @@
 {
+  "extends": [
+    "@tsconfig/node20/tsconfig.json",
+    "@tsconfig/strictest/tsconfig.json"
+  ],
+  "exclude": ["dist", "test/dist"],
   "compilerOptions": {
-    "types": ["./client"]
+    "lib": ["dom"],
+    "module": "NodeNext",
+    "types": ["./client"],
+    "declaration": true
   }
 }

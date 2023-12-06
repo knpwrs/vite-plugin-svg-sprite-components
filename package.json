@@ -2,6 +2,7 @@
   "name": "vite-plugin-svg-sprite-components",
   "type": "module",
   "version": "0.0.0",
+  "exports": "./dist/index.js",
   "description": "Create svg sprite sheets from imported svg files and get usable components for many popular frontend frameworks.",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

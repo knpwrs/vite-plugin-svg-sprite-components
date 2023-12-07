@@ -18,9 +18,9 @@ export default function vitePluginSvgSpriteComponentsReact() {
       if (inline) {
         return stripIndent`
           import { forwardRef } from 'react';
-          import { jsx as _jsx } from "react/jsx-runtime";
+          import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
           export default /*#__PURE__*/forwardRef(function Icon(props, ref) {
-            return /*#__PURE__*/_jsx("svg", {
+            return /*#__PURE__*/_jsxs("svg", {
               ${attributesCode},
               ...props,
               ref: ref,
@@ -42,9 +42,9 @@ export default function vitePluginSvgSpriteComponentsReact() {
 
       return stripIndent`
         import { forwardRef } from 'react';
-        import { jsx as _jsx } from "react/jsx-runtime";
+        import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
         export default forwardRef(function Icon(props, ref) {
-          return /*#__PURE__*/_jsx("svg", {
+          return /*#__PURE__*/_jsxs("svg", {
             ${attributesCode},
             ...props,
             ref: ref,

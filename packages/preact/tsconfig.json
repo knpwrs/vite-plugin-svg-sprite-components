@@ -1,0 +1,15 @@
+{
+  "extends": [
+    "@tsconfig/node20/tsconfig.json",
+    "@tsconfig/strictest/tsconfig.json"
+  ],
+  "exclude": ["dist", "test/dist"],
+  "compilerOptions": {
+    "lib": ["dom"],
+    "module": "NodeNext",
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact",
+    "types": ["./client"],
+    "declaration": true
+  }
+}

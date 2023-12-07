@@ -4,11 +4,14 @@ import { hash } from 'hasha';
 import { readFile } from 'node:fs/promises';
 import invariant from 'tiny-invariant';
 import MagicString from 'magic-string';
+import { XMLParser, XMLBuilder } from 'fast-xml-parser';
 
 export type SerializeParams = {
+  symbol: Record<'svg', object>;
+  symbolHtml: string;
   symbolId: string;
   inline: boolean;
-  symbols: Map<string, string>;
+  filePlaceholder: string;
 };
 
 export type Options = {
@@ -24,7 +27,7 @@ async function shortHash(src: string) {
 
 async function resolveOutputFilename(
   tmpl: string,
-  symbols: Map<string, string>,
+  symbols: Map<string, Record<'svg', object>>,
 ) {
   return `assets/${tmpl
     .replace('[name]', 'sprites')
@@ -33,43 +36,67 @@ async function resolveOutputFilename(
       await shortHash(
         Array.from(symbols.keys())
           .sort()
-          .map((id) => symbols.get(id))
+          .map((id) => {
+            const symbol = symbols.get(id);
+            invariant(symbol, 'Symbol not found');
+            return xmlBuilder.build(symbol);
+          })
           .join(''),
       ),
     )
     .replace('[ext]', 'svg')}`;
 }
 
-const PLACEHOLDER = '__SPRITE_ASSET_PLACEHOLDER__';
+const FILE_PLACEHOLDER = '__SPRITE_ASSET_PLACEHOLDER__';
+
+const xmlParser = new XMLParser({
+  ignoreAttributes: false,
+  allowBooleanAttributes: true,
+});
+
+const xmlBuilder = new XMLBuilder({
+  ignoreAttributes: false,
+});
 
 function defaultSerialize({
+  symbol,
   symbolId,
   inline,
-  symbols,
+  filePlaceholder,
 }: SerializeParams): string {
-  const symbol = symbols.get(symbolId);
-  invariant(symbol, 'Missing symbol!');
-
-  const svgRootTag = symbol
-    .substring(0, symbol.indexOf('>') + 1)
-    .replace(/<symbol id=".+?"/, '<svg');
+  const attributes = Object.fromEntries(
+    Object.entries(symbol.svg).filter(([key]) => key.startsWith('@_')),
+  );
 
   if (inline) {
-    return `export default '${svgRootTag}${symbols.get(
-      symbolId,
-    )}<use href="#${symbolId}" /></svg>'`;
+    const svg = {
+      svg: {
+        ...attributes,
+        symbol: { ...symbol.svg, ['@_id']: symbolId },
+        use: { ['@_href']: `#${symbolId}` },
+      },
+    };
+
+    return `export default ${JSON.stringify(xmlBuilder.build(svg))};`;
   }
 
-  return `export default '${svgRootTag}<use href="${PLACEHOLDER}#${symbolId}" /></svg>'`;
+  const svg = {
+    svg: {
+      ...attributes,
+      use: { ['@_href']: `${filePlaceholder}#${symbolId}` },
+    },
+  };
+
+  return `export default ${JSON.stringify(xmlBuilder.build(svg))};`;
 }
 
-export default function ({
+export default function vitePluginSvgSpriteComponentsCore({
   name = 'svg-sprite-components-core',
   fileName = '[name]-[hash].[ext]',
   serialize = defaultSerialize,
   query = 'sprite',
 }: Options = {}): Plugin {
-  const symbols = new Map<string, string>();
+  const symbols = new Map<string, Record<'svg', object>>();
   let cmd = 'unknown';
   let resolvedFileName: string;
 
@@ -91,10 +118,7 @@ export default function ({
       });
 
       const symbolId = await shortHash(src);
-      const symbol = data
-        .replace('<svg', `<symbol id="${symbolId}"`)
-        .replace('/svg>', '/symbol>');
-      symbols.set(symbolId, symbol);
+      symbols.set(symbolId, xmlParser.parse(data));
 
       return { code: JSON.stringify(symbolId) };
     },
@@ -104,18 +128,22 @@ export default function ({
         return null;
       const symbolId = JSON.parse(src);
       invariant(typeof symbolId === 'string', 'Improperly formatted symbolId');
+      const symbol = symbols.get(symbolId);
+      invariant(symbol, 'Symbol not found');
       return serialize({
+        symbol,
+        symbolHtml: xmlBuilder.build(symbol),
         symbolId,
         inline: cmd === 'serve',
-        symbols,
+        filePlaceholder: FILE_PLACEHOLDER,
       });
     },
     async renderChunk(code) {
-      if (!code.includes(PLACEHOLDER)) return null;
+      if (!code.includes(FILE_PLACEHOLDER)) return null;
 
       resolvedFileName ??= await resolveOutputFilename(fileName, symbols);
       const str = new MagicString(code);
-      str.replaceAll(PLACEHOLDER, resolvedFileName);
+      str.replaceAll(FILE_PLACEHOLDER, resolvedFileName);
 
       return {
         code: str.toString(),
@@ -127,7 +155,11 @@ export default function ({
         symbols.keys(),
       )
         .sort()
-        .map((id) => symbols.get(id))
+        .map((id) => {
+          const symbol = symbols.get(id);
+          invariant(symbol, 'Symbol not found');
+          return xmlBuilder.build({ symbol: { ...symbol.svg, ['@_id']: id } });
+        })
         .join('')}</svg>`;
 
       resolvedFileName ??= await resolveOutputFilename(fileName, symbols);

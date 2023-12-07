@@ -1,0 +1,15 @@
+{
+  "extends": [
+    "@tsconfig/node20/tsconfig.json",
+    "@tsconfig/strictest/tsconfig.json"
+  ],
+  "exclude": ["dist", "test/dist"],
+  "compilerOptions": {
+    "lib": ["dom"],
+    "module": "NodeNext",
+    "jsx": "preserve",
+    "jsxImportSource": "solid-js",
+    "types": ["./client"],
+    "declaration": true
+  }
+}

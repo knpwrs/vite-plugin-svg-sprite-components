@@ -1,0 +1,25 @@
+{
+  "name": "html-example",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "run-s check:*",
+    "check:ts": "tsc --noEmit",
+    "check:format": "prettier --check ."
+  },
+  "dependencies": {
+    "tiny-invariant": "^1.3.1"
+  },
+  "devDependencies": {
+    "@tsconfig/node20": "^20.1.2",
+    "@tsconfig/strictest": "^2.0.2",
+    "npm-run-all": "^4.1.5",
+    "prettier": "^3.1.0",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.6",
+    "vite-plugin-svg-sprite-components-core": "workspace:*"
+  }
+}

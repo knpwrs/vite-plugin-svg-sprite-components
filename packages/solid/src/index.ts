@@ -1,7 +1,7 @@
 import core from 'vite-plugin-svg-sprite-components-core';
 import { stripIndent } from 'proper-tags';
 
-export default function vitePluginSvgSpriteComponentsReact() {
+export default function vitePluginSvgSpriteComponentsSolid() {
   return core({
     name: 'svg-sprite-components-solid',
     query: 'sprite-solid',

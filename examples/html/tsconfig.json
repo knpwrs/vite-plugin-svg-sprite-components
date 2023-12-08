@@ -5,9 +5,8 @@
   ],
   "exclude": ["dist"],
   "compilerOptions": {
-    "outDir": "dist",
     "lib": ["dom"],
     "module": "NodeNext",
-    "declaration": true
+    "types": ["vite-plugin-svg-sprite-components-core/client"]
   }
 }

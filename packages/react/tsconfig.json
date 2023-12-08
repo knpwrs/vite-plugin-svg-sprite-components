@@ -3,12 +3,11 @@
     "@tsconfig/node20/tsconfig.json",
     "@tsconfig/strictest/tsconfig.json"
   ],
-  "exclude": ["dist", "test/dist"],
+  "exclude": ["dist"],
   "compilerOptions": {
+    "outDir": "dist",
     "lib": ["dom"],
     "module": "NodeNext",
-    "jsx": "react-jsx",
-    "types": ["./client"],
     "declaration": true
   }
 }

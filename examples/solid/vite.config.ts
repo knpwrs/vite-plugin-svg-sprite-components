@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 import solidPlugin from 'vite-plugin-solid';
-import spritesPlugin from '../src/index.js';
+import spritesPlugin from 'vite-plugin-svg-sprite-components-solid';
 
 export default defineConfig({
-  plugins: [spritesPlugin(), solidPlugin()],
+  plugins: [solidPlugin(), spritesPlugin()],
 });

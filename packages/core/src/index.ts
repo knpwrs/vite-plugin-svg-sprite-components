@@ -12,13 +12,13 @@ export type SerializeParams = {
   symbolId: string;
   inline: boolean;
   filePlaceholder: string;
+  query: string;
 };
 
 export type Options = {
   name?: string;
   fileName?: string;
-  serialize?: (p: SerializeParams) => string;
-  query?: string;
+  serializers?: Array<(p: SerializeParams) => string | false>;
 };
 
 async function shortHash(src: string) {
@@ -93,8 +93,7 @@ function defaultSerialize({
 export default function vitePluginSvgSpriteComponentsCore({
   name = 'svg-sprite-components-core',
   fileName = '[name]-[hash].[ext]',
-  serialize = defaultSerialize,
-  query = 'sprite',
+  serializers = [defaultSerialize],
 }: Options = {}): Plugin {
   const symbols = new Map<string, Record<'svg', object>>();
   let cmd = 'unknown';
@@ -108,7 +107,10 @@ export default function vitePluginSvgSpriteComponentsCore({
     },
     async load(id) {
       const url = new URL(id, 'file:///');
-      if (!url.pathname.endsWith('.svg') || url.search.slice(1) !== query)
+      if (
+        !url.pathname.endsWith('.svg') ||
+        url.search.slice(1).startsWith('sprite')
+      )
         return null;
 
       const src = await readFile(url.pathname, 'utf-8');
@@ -124,19 +126,33 @@ export default function vitePluginSvgSpriteComponentsCore({
     },
     async transform(src, id) {
       const url = new URL(id, 'file:///');
-      if (!url.pathname.endsWith('.svg') || url.search.slice(1) !== query)
+
+      if (
+        !url.pathname.endsWith('.svg') ||
+        url.search.slice(1).startsWith('sprite')
+      ) {
         return null;
+      }
+
       const symbolId = JSON.parse(src);
       invariant(typeof symbolId === 'string', 'Improperly formatted symbolId');
       const symbol = symbols.get(symbolId);
       invariant(symbol, 'Symbol not found');
-      return serialize({
-        symbol,
-        symbolHtml: xmlBuilder.build(symbol),
-        symbolId,
-        inline: cmd === 'serve',
-        filePlaceholder: FILE_PLACEHOLDER,
-      });
+
+      for (const serialize of serializers) {
+        const result = serialize({
+          symbol,
+          symbolHtml: xmlBuilder.build(symbol),
+          symbolId,
+          inline: cmd === 'serve',
+          filePlaceholder: FILE_PLACEHOLDER,
+          query: url.search.slice(1),
+        });
+
+        if (result) return result;
+      }
+
+      return null;
     },
     async renderChunk(code) {
       if (!code.includes(FILE_PLACEHOLDER)) return null;

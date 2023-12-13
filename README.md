@@ -24,3 +24,11 @@ See the following examples for specific frameworks, all with TypeScript support:
 - [`./examples/html`](./examples/html)
 
 If your build uses multiple frontend frameworks (e.g., an Astro project with multiple islands), you can set up this plugin to generate components for all of them, and they will all reference the same sprite sheet. See [./examples/multi](./examples/multi) for a working example.
+
+# Release Process
+
+- Run `pnpm changeset`
+- Run `pnpm changeset version`
+- Run `pnpm install`
+- Commit the changes
+- Run `pnpm publish -r`

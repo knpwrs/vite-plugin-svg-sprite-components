@@ -1,7 +1,7 @@
 {
   "name": "vite-plugin-svg-sprite-components-core",
   "type": "module",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Create svg sprite sheets from imported svg files and get usable components for many popular frontend frameworks.",
   "exports": {
     ".": "./dist/index.js",

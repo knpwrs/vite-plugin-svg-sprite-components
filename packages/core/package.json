@@ -28,6 +28,11 @@
   ],
   "author": "Ken Powers <ken@kenpowers.net> (https://knpw.rs)",
   "license": "UNLICENSE",
+  "homepage": "https://github.com/knpwrs/vite-plugin-svg-sprite-components/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/knpwrs/vite-plugin-svg-sprite-components.git"
+  },
   "dependencies": {
     "fast-xml-parser": "^4.3.2",
     "hasha": "^6.0.0",

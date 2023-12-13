@@ -1,0 +1,57 @@
+---
+import Icon1Html from '../components/icon1.svg?sprite'
+import Icon2Html from '../components/icon2.svg?sprite'
+import Icon1React from '../components/icon1.svg?sprite-react'
+import Icon2React from '../components/icon2.svg?sprite-react'
+import Icon1Preact from '../components/icon1.svg?sprite-preact'
+import Icon2Preact from '../components/icon2.svg?sprite-preact'
+import Icon1Solid from '../components/icon1.svg?sprite-solid'
+import Icon2Solid from '../components/icon2.svg?sprite-solid'
+---
+
+<h1>Hello!</h1>
+
+<h2>Static</h2>
+
+<h3>HTML</h3>
+
+<Fragment set:html={Icon1Html} />
+<Fragment set:html={Icon2Html} />
+
+<h3>React</h3>
+
+<Icon1React />
+<Icon2React />
+
+<h3>Preact</h3>
+
+<Icon1Preact />
+<Icon2Preact />
+
+<h3>Solid</h3>
+
+<Icon1Solid />
+<Icon2Solid />
+
+<h2>Islands</h2>
+
+<h3>React</h3>
+
+<Icon1React client:load />
+<Icon2React client:load />
+
+<h3>Preact</h3>
+
+<Icon1Preact client:load />
+<Icon2Preact client:load />
+
+<h3>Solid</h3>
+
+<Icon1Solid client:load />
+<Icon2Solid client:load />
+
+<style>
+  h1, h2, h3 {
+    font-family: system-ui;
+  }
+</style>

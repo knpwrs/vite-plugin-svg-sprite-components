@@ -2,6 +2,7 @@ import core, {
   type SerializeParams,
 } from 'vite-plugin-svg-sprite-components-core';
 import { stripIndent } from 'proper-tags';
+import invariant from 'tiny-invariant';
 
 export function serialize({
   symbol,
@@ -10,10 +11,22 @@ export function serialize({
   inline,
   filePlaceholder,
   query,
+  context,
+  plugins,
+  moduleId,
+  transformOptions,
 }: SerializeParams) {
   if (query !== 'sprite-preact') {
     return false;
   }
+
+  const preactPlugin = plugins.find(
+    (plugin) => plugin.name === 'vite:preact-jsx',
+  );
+
+  invariant(preactPlugin, 'preact plugin not found');
+
+  const url = new URL(`file://${moduleId}`);
 
   const attributes = Object.fromEntries(
     Object.entries(symbol.svg)
@@ -21,30 +34,40 @@ export function serialize({
       .map(([key, val]) => [key.replace('@_', ''), val]),
   );
   const attributesCode = Object.entries(attributes)
-    .map(([key, val]) => `${key}: ${JSON.stringify(val)}`)
-    .join(', ');
+    .map(([key, val]) => `${key}={${JSON.stringify(val)}}`)
+    .join(' ');
 
-  if (inline) {
-    return stripIndent`
-      import { jsx as _jsx, jsxs as _jsxs } from "preact/jsx-runtime";
+  const src = inline
+    ? stripIndent`
+        import { forwardRef } from 'preact/compat';
+        export default forwardRef(function Sprite(props, ref) {
+          return (
+            <svg ${attributesCode} {...props} ref={ref}>
+              <symbol ${attributesCode} id="${symbolId}" dangerouslySetInnerHTML={{ __html: ${JSON.stringify(
+                symbolHtml,
+              )} }} />
+              <use href="#${symbolId}" />
+            </svg>
+            )
+        });
+      `
+    : stripIndent`
       import { forwardRef } from 'preact/compat';
-      const Svg = forwardRef(function C(props, ref) {
-          return (_jsxs("svg", { ${attributesCode}, ...props, ref: ref, children: [_jsx("symbol", { id: "${symbolId}", dangerouslySetInnerHTML: { __html: ${JSON.stringify(
-            symbolHtml.replace(/^<svg.+?>/, '').replace(/<\/svg>$/, ''),
-          )} } }), _jsx("use", { href: "#${symbolId}" })] }));
+      export default forwardRef(function Sprite(props, ref) {
+        return (
+          <svg ${attributesCode} {...props} ref={ref}>
+            <use href="${filePlaceholder}#${symbolId}" />
+          </svg>
+        );
       });
-      export default Svg;
     `;
-  }
 
-  return stripIndent`
-    import { jsx as _jsx } from "preact/jsx-runtime";
-    import { forwardRef } from 'preact/compat';
-    const Comp = forwardRef(function C(props, ref) {
-        return (_jsx("svg", { ${attributesCode}, ...props, ref: ref, children: _jsx("use", { href: "${filePlaceholder}#${symbolId}" }) }));
-    });
-    export default Comp;
-  `;
+  const transform =
+    typeof preactPlugin.transform === 'function'
+      ? preactPlugin.transform
+      : preactPlugin.transform?.handler;
+
+  return transform?.call(context, src, `${url.pathname}.tsx`, transformOptions);
 }
 
 export default function vitePluginSvgSpriteComponentsReact() {

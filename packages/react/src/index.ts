@@ -26,43 +26,43 @@ export function serialize({
 
   if (inline) {
     return stripIndent`
-          import { forwardRef } from 'react';
-          import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-          export default /*#__PURE__*/forwardRef(function Icon(props, ref) {
-            return /*#__PURE__*/_jsxs("svg", {
-              ${attributesCode},
-              ...props,
-              ref: ref,
-              children: [/*#__PURE__*/_jsx("symbol", {
-                ${attributesCode},
-                id: "${symbolId}",
-                dangerouslySetInnerHTML: {
-                  __html: ${JSON.stringify(
-                    symbolHtml.replace(/^<svg.+?>/, '').replace(/<\/svg>$/, ''),
-                  )}
-                }
-              }), /*#__PURE__*/_jsx("use", {
-                href: "#${symbolId}"
-              })]
-            });
-          });
-        `;
+      import { forwardRef } from 'react';
+      import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+      export default /*#__PURE__*/forwardRef(function Icon(props, ref) {
+        return /*#__PURE__*/_jsxs("svg", {
+          ${attributesCode},
+          ...props,
+          ref: ref,
+          children: [/*#__PURE__*/_jsx("symbol", {
+            ${attributesCode},
+            id: "${symbolId}",
+            dangerouslySetInnerHTML: {
+              __html: ${JSON.stringify(
+                symbolHtml.replace(/^<svg.+?>/, '').replace(/<\/svg>$/, ''),
+              )}
+            }
+          }), /*#__PURE__*/_jsx("use", {
+            href: "#${symbolId}"
+          })]
+        });
+      });
+    `;
   }
 
   return stripIndent`
-        import { forwardRef } from 'react';
-        import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-        export default forwardRef(function Icon(props, ref) {
-          return /*#__PURE__*/_jsxs("svg", {
-            ${attributesCode},
-            ...props,
-            ref: ref,
-            children: /*#__PURE__*/_jsx("use", {
-              href: "${filePlaceholder}#${symbolId}"
-            })
-          });
-        });
-      `;
+    import { forwardRef } from 'react';
+    import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+    export default forwardRef(function Icon(props, ref) {
+      return /*#__PURE__*/_jsxs("svg", {
+        ${attributesCode},
+        ...props,
+        ref: ref,
+        children: /*#__PURE__*/_jsx("use", {
+          href: "${filePlaceholder}#${symbolId}"
+        })
+      });
+    });
+  `;
 }
 
 export default function vitePluginSvgSpriteComponentsReact() {

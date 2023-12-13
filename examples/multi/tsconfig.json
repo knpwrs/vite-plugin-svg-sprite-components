@@ -1,0 +1,12 @@
+{
+  "extends": "astro/tsconfigs/strict",
+  "compilerOptions": {
+    "types": [
+      "astro/client",
+      "vite-plugin-svg-sprite-components-core/client",
+      "vite-plugin-svg-sprite-components-react/client",
+      "vite-plugin-svg-sprite-components-preact/client",
+      "vite-plugin-svg-sprite-components-solid/client"
+    ]
+  }
+}

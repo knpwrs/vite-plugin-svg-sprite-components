@@ -1,10 +1,15 @@
-import { type Plugin } from 'vite';
+import { ResolvedConfig, type Plugin } from 'vite';
 import { optimize } from 'svgo';
 import { hash } from 'hasha';
 import { readFile } from 'node:fs/promises';
 import invariant from 'tiny-invariant';
 import MagicString from 'magic-string';
 import { XMLParser, XMLBuilder } from 'fast-xml-parser';
+import type {
+  SourceDescription,
+  TransformPluginContext,
+  TransformResult,
+} from 'rollup';
 
 export type SerializeParams = {
   symbol: Record<'svg', object>;
@@ -13,12 +18,26 @@ export type SerializeParams = {
   inline: boolean;
   filePlaceholder: string;
   query: string;
+  context: TransformPluginContext;
+  plugins: ResolvedConfig['plugins'];
+  moduleId: string;
+  transformOptions?: { ssr?: boolean } | undefined;
 };
 
 export type Options = {
   name?: string;
   fileName?: string;
-  serializers?: Array<(p: SerializeParams) => string | false>;
+  serializers?: Array<
+    (
+      p: SerializeParams,
+    ) =>
+      | string
+      | false
+      | null
+      | void
+      | Partial<SourceDescription>
+      | Promise<TransformResult>
+  >;
 };
 
 async function shortHash(src: string) {
@@ -58,12 +77,17 @@ const xmlBuilder = new XMLBuilder({
   ignoreAttributes: false,
 });
 
-function defaultSerialize({
+export function serializeHtml({
   symbol,
   symbolId,
   inline,
   filePlaceholder,
-}: SerializeParams): string {
+  query,
+}: SerializeParams): string | false {
+  if (query !== 'sprite') {
+    return false;
+  }
+
   const attributes = Object.fromEntries(
     Object.entries(symbol.svg).filter(([key]) => key.startsWith('@_')),
   );
@@ -93,25 +117,28 @@ function defaultSerialize({
 export default function vitePluginSvgSpriteComponentsCore({
   name = 'svg-sprite-components-core',
   fileName = '[name]-[hash].[ext]',
-  serializers = [defaultSerialize],
+  serializers = [serializeHtml],
 }: Options = {}): Plugin {
   const symbols = new Map<string, Record<'svg', object>>();
   let cmd = 'unknown';
+  let config: ResolvedConfig;
   let resolvedFileName: string;
 
   return {
     name,
     enforce: 'pre',
-    configResolved({ command }) {
-      cmd = command;
+    configResolved(cfg) {
+      cmd = cfg.command;
+      config = cfg;
     },
     async load(id) {
       const url = new URL(id, 'file:///');
       if (
         !url.pathname.endsWith('.svg') ||
-        url.search.slice(1).startsWith('sprite')
-      )
+        !url.search.slice(1).startsWith('sprite')
+      ) {
         return null;
+      }
 
       const src = await readFile(url.pathname, 'utf-8');
 
@@ -124,12 +151,17 @@ export default function vitePluginSvgSpriteComponentsCore({
 
       return { code: JSON.stringify(symbolId) };
     },
-    async transform(src, id) {
+    async transform(src, id, transformOptions) {
+      // Exclude virtual modules, e.g., Astro Entrypoints
+      if (id.startsWith('\x00')) {
+        return null;
+      }
+
       const url = new URL(id, 'file:///');
 
       if (
         !url.pathname.endsWith('.svg') ||
-        url.search.slice(1).startsWith('sprite')
+        !url.search.slice(1).startsWith('sprite')
       ) {
         return null;
       }
@@ -147,6 +179,10 @@ export default function vitePluginSvgSpriteComponentsCore({
           inline: cmd === 'serve',
           filePlaceholder: FILE_PLACEHOLDER,
           query: url.search.slice(1),
+          context: this,
+          plugins: config.plugins,
+          moduleId: id,
+          transformOptions,
         });
 
         if (result) return result;
